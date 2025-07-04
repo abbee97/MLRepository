@@ -1,0 +1,167 @@
+#Install Dependencies
+%pip install matplotlib
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LogisticRegression
+from sklearn.naive_bayes import GaussianNB
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.metrics import accuracy_score, classification_report
+
+#Load Dataset
+nasa93_df = pd.read_csv("C:\\Users\\as92160n\\Downloads\\nasa93.csv")
+
+print(nasa93_df.columns)
+
+# Visualize the distribution of the target variable (Software Effort)
+plt.figure(figsize=(8, 6))
+plt.hist(nasa93_df['vexp'], bins=20, color='skyblue', edgecolor='black')
+plt.title('Distribution of Software Effort')
+plt.xlabel('Software Effort')
+plt.ylabel('Frequency')
+plt.show()
+
+# Correlation Analysis
+plt.figure(figsize=(10, 8))
+correlation_matrix = nasa93_df.corr()
+sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', fmt=".2f")
+plt.title('Correlation Matrix')
+plt.show()
+
+# Feature Importance
+rf = RandomForestRegressor()
+rf.fit(X, y)
+feature_importances = pd.Series(rf.feature_importances_, index=X.columns)
+feature_importances = feature_importances.sort_values(ascending=False)
+plt.figure(figsize=(10, 6))
+feature_importances.plot(kind='bar', color='lightblue')
+plt.title('Feature Importances')
+plt.xlabel('Features')
+plt.ylabel('Importance')
+plt.show()
+
+# Categorical Variables Analysis
+categorical_columns = ['cat2', 'forg', 'mode']  # Add other categorical columns as needed
+for column in categorical_columns:
+    plt.figure(figsize=(8, 6))
+    sns.countplot(x=column, data=nasa93_df, palette='viridis')
+    plt.title(f'Distribution of {column}')
+    plt.xlabel(column)
+    plt.ylabel('Count')
+    plt.xticks(rotation=45)
+    plt.show()
+
+# Time Trends
+plt.figure(figsize=(10, 6))
+sns.lineplot(x='year', y='vexp', data=nasa93_df, estimator='mean', ci=None)
+plt.title('Software Effort Over Time')
+plt.xlabel('Year')
+plt.ylabel('Software Effort')
+plt.show()
+
+# Center Analysis
+plt.figure(figsize=(10, 6))
+sns.boxplot(x='center', y='vexp', data=nasa93_df, palette='Set3')
+plt.title('Distribution of Software Effort Across Centers')
+plt.xlabel('Center')
+plt.ylabel('Software Effort')
+plt.show()
+
+# Mode of Development
+plt.figure(figsize=(10, 6))
+sns.boxplot(x='mode', y='vexp', data=nasa93_df, palette='Pastel1')
+plt.title('Distribution of Software Effort Across Development Modes')
+plt.xlabel('Development Mode')
+plt.ylabel('Software Effort')
+plt.show()
+
+# Complexity Analysis
+plt.figure(figsize=(10, 6))
+sns.scatterplot(x='cplx', y='vexp', data=nasa93_df, color='coral')
+plt.title('Software Effort vs. Complexity')
+plt.xlabel('Complexity')
+plt.ylabel('Software Effort')
+plt.show()
+
+# Pairwise Relationships
+sns.pairplot(nasa93_df, vars=['vexp', 'time', 'acap', 'aexp'], diag_kind='kde')
+plt.show()
+
+# Drop unnecessary columns if they exist
+columns_to_drop = ['id', 'recordnumber', 'projectname']
+for col in columns_to_drop:
+    if col in nasa93_df.columns:
+        nasa93_df = nasa93_df.drop(col, axis=1)
+
+# Encode categorical variables
+label_encoder = LabelEncoder()
+for column in nasa93_df.columns:
+    if nasa93_df[column].dtype == 'object':
+        nasa93_df[column] = label_encoder.fit_transform(nasa93_df[column])
+
+# Split the dataset into features and target variable
+X = nasa93_df.drop('vexp', axis=1)
+y = nasa93_df['vexp']
+
+# Split the data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Standardize the features
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+
+# Logistic Regression
+logistic_regression_model = LogisticRegression()
+logistic_regression_model.fit(X_train, y_train)
+logistic_regression_pred = logistic_regression_model.predict(X_test)
+logistic_regression_accuracy = accuracy_score(y_test, logistic_regression_pred)
+
+# Naive Bayes
+naive_bayes_model = GaussianNB()
+naive_bayes_model.fit(X_train, y_train)
+naive_bayes_pred = naive_bayes_model.predict(X_test)
+naive_bayes_accuracy = accuracy_score(y_test, naive_bayes_pred)
+
+# KNN
+knn_model = KNeighborsClassifier()
+knn_model.fit(X_train, y_train)
+knn_pred = knn_model.predict(X_test)
+knn_accuracy = accuracy_score(y_test, knn_pred)
+
+# Print results
+print("Logistic Regression Accuracy:", logistic_regression_accuracy)
+print("Naive Bayes Accuracy:", naive_bayes_accuracy)
+print("KNN Accuracy:", knn_accuracy)
+
+# Print classification report for Logistic Regression
+print("Classification Report for Logistic Regression:")
+print(classification_report(y_test, logistic_regression_pred))
+
+# Print classification report for Naive Bayes
+print("Classification Report for Naive Bayes:")
+print(classification_report(y_test, naive_bayes_pred))
+
+# Print classification report for KNN
+print("Classification Report for KNN:")
+print(classification_report(y_test, knn_pred))
+
+# Visualize accuracy of different models
+models = ['Logistic Regression', 'Naive Bayes', 'KNN']
+accuracies = [logistic_regression_accuracy, naive_bayes_accuracy, knn_accuracy]
+
+plt.figure(figsize=(10, 6))
+plt.bar(models, accuracies, color=['blue', 'green', 'red'])
+plt.xlabel('Models')
+plt.ylabel('Accuracy')
+plt.title('Accuracy of Different Models')
+plt.ylim(0, 1)
+plt.show()
+
+# Determine the best model
+best_model = models[accuracies.index(max(accuracies))]
+print(f"The best model for software effort estimation is: {best_model} with an accuracy of {max(accuracies)}")
