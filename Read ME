@@ -1,0 +1,13 @@
+# NASA93 Software Effort Estimation
+
+This project uses the NASA93 dataset to train ML models (Random Forest, kNN, etc.) to predict software effort (person-months).
+
+## Files
+- `projml.ipynb`: Jupyter notebook with preprocessing, modeling, evaluation.
+- `csv_result-nasa93.csv`: Dataset used.
+- `requirements.txt`: Python dependencies.
+
+## How to run
+```bash
+pip install -r requirements.txt
+jupyter notebook
